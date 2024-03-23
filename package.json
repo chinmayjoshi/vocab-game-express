@@ -1,0 +1,20 @@
+{
+  "name": "vocab-game-express",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "body-parser": "^1.20.2",
+    "express": "^4.19.1",
+    "telegraf": "^4.16.3",
+    "@langchain/openai": "^0.0.21",
+    "faunadb": "^4.8.0",
+    "langchain": "^0.1.28"
+  }
+}
