@@ -1,8 +1,8 @@
 // handlers/learnWords.js
 const { storeMessage } = require("../database/fauna");
 const { ChatOpenAI } = require("@langchain/openai");
-const { updateUser } = require("../database/fauna");
-const { getCandidateWordsForUser } = require("../database/fauna");
+const { updateUserSession } = require("../database/fauna");
+const { getCandidateWordsFromUserSession } = require("../database/fauna");
 
 
 
@@ -42,13 +42,13 @@ module.exports = async (ctx) => {
 
     // If easy or hard, fetch candidate words from user and pass them to the model
     if (difficultyPrompt === "easy" || difficultyPrompt === "hard") {
-      const candidateWords = await getCandidateWordsForUser(ctx.from.id);
+      const candidateWords = await getCandidateWordsFromUserSession(ctx.from.id);
     }
 
 
     let response;
     if (difficultyPrompt === "easy" || difficultyPrompt === "hard") {
-      const candidateWords = await getCandidateWordsForUser(ctx.from.id);
+      const candidateWords = await getCandidateWordsFromUserSession(ctx.from.id);
       response = await chatModel.invoke(`
       Give me ${numberOfWords} words in English to practice vocabulary. You had previously given me the words: ${candidateWords.join(", ")}.
       I want more ${difficultyPrompt} words than those.
@@ -71,7 +71,7 @@ module.exports = async (ctx) => {
 
     // Parse the response to extract the words 
     const words = JSON.parse(modelResponse).words;
-    updateUser(ctx.from.id, words);
+    updateUserSession(ctx.from.id, words);
     modelResponse = `Here are ${numberOfWords} words for you to learn: \n\n${words.join(", ")}`;
   
     // Provide options for the user

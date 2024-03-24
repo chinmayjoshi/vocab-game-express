@@ -11,6 +11,7 @@ const bot = new Telegraf(process.env.BOT_TOKEN);
 const startHandler = require('./handlers/start');
 const learnWordsHandler = require('./handlers/learnWords');
 const startGameHandler = require('./handlers/startGame');
+const answerHandler = require('./handlers/answer');
 
 // Use bodyParser to parse incoming updates as JSON
 app.use(bodyParser.json());
@@ -32,6 +33,7 @@ app.post('/api/bot', (req, res) => {
 bot.start(startHandler);
 bot.action(/^action:learn_words:\d+:[a-z]+$/, learnWordsHandler);
 bot.action("action:start_game", startGameHandler);
+bot.action(/answer_(\d+)/, answerHandler);
 
 // This method is not needed in an Express setup and was specific to serverless deployment
 // exports.handler = async (event) => { ... };
