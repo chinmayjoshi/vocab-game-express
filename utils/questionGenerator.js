@@ -34,7 +34,9 @@ async function generateQuestionForWord(word, level) {
 
 // Function to create the prompt based on the word and difficulty level
 function createPromptForQuestion(word, level) {
+  let prompt_prefix = `You are generating questions for GRE aspirants. `
   let prompt = `Create a question for the word "${word}" at a "${level}" difficulty level.`;
+  prompt = prompt_prefix + prompt;
 
   switch (level) {
     case "easy":

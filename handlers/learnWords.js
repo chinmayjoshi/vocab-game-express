@@ -49,7 +49,7 @@ module.exports = async (ctx) => {
     let response;
     if (difficultyPrompt === "easy" || difficultyPrompt === "hard") {
       const candidateWords = await getCandidateWordsFromUserSession(ctx.from.id);
-      response = await chatModel.invoke(`
+      response = await chatModel.invoke(` I am a GRE aspirant.
       Give me ${numberOfWords} words in English to practice vocabulary. You had previously given me the words: ${candidateWords.join(", ")}.
       I want more ${difficultyPrompt} words than those.
       . Don't reply with anything else, not even the meaning of the word. 

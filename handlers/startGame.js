@@ -7,7 +7,7 @@ module.exports = async (ctx) => {
     const candidateWords = await getCandidateWordsFromUserSession(ctx.from.id);
 
     for (const word of candidateWords) {
-      const level = 'easy';
+      const level = 'medium';
       const question = await generateQuestionForWord(word, level);
       console.log(`Generated question for word "${word}":`, question);
       await writeUserWord(ctx.from.id, word, [question]); // Assume this adds an unanswered flag by default
