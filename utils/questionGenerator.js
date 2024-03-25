@@ -62,7 +62,6 @@ function createPromptForQuestion(word, level) {
   return prompt;
 }
 
-
 async function get_next_question(ctx) {
   try {
     const questions = await fetchUnansweredQuestions(ctx.from.id);
@@ -77,15 +76,36 @@ async function get_next_question(ctx) {
 
     await updateCurrentQuestionInSession(ctx.from.id, question);
 
-    const optionsKeyboard = question.options.map((option) => ({
-      text: option, // Assume these are summarized or split appropriately
-    }));
+    // Function to generate option labels (A, B, C, ..., AA, AB, ...)
+    function generateOptionLabels(n) {
+      const labels = [];
+      for (let i = 0; i < n; i++) {
+        let label = '';
+        let divisionResult = i;
+        while (divisionResult >= 0) {
+          label = String.fromCharCode('A'.charCodeAt(0) + (divisionResult % 26)) + label;
+          divisionResult = Math.floor(divisionResult / 26) - 1;
+        }
+        labels.push(label);
+      }
+      return labels;
+    }
 
-    return ctx.reply(question.query_text, {
+    // Construct the message with options
+    let messageWithOptions = question.query_text + "\n";
+    const optionsLabels = generateOptionLabels(question.options.length);
+    question.options.forEach((option, index) => {
+      messageWithOptions += `\n${optionsLabels[index]}. ${option}`;
+    });
+
+    // Create an inline keyboard for the options
+    const optionsKeyboard = optionsLabels.map((label, index) => {
+      return [{ text: label, callback_data: 'answer_' + index }];
+    });
+
+    return ctx.reply(messageWithOptions, {
       reply_markup: {
-        keyboard: [optionsKeyboard], // Adjust for formatting if needed
-        one_time_keyboard: true, // Make the keyboard disappear after use
-        resize_keyboard: true, // Resize the keyboard based on the users' screen
+        inline_keyboard: optionsKeyboard,
       },
     });
   } catch (error) {
@@ -93,6 +113,8 @@ async function get_next_question(ctx) {
     return ctx.reply("An error occurred while getting the next question.");
   }
 }
+
+
 
 
 
