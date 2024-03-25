@@ -117,7 +117,7 @@ async function writeUserWord(userId, word, questions, questionId = null) {
         throw new Error("Invalid questions format. Each question must be an object with a 'query_text' property.");
       }
     
-      // Prepare the data for updating
+      // Prepare the data for updating, setting hasAnyUnansweredQuestions to true
       const updateData = {
         questions: q.Append(
           questions.map(question => ({
@@ -130,7 +130,8 @@ async function writeUserWord(userId, word, questions, questionId = null) {
           })),
           // Append new questions to the existing ones
           q.Select(["data", "questions"], q.Get(userWordRef))
-        )
+        ),
+        hasAnyUnansweredQuestions: true // Assuming at least one new question means there's an unanswered question
       };
     
       // Optionally include the 'word' if it's provided and not empty
@@ -146,12 +147,12 @@ async function writeUserWord(userId, word, questions, questionId = null) {
       console.log(`Successfully updated document for user ID ${userId} with additional questions.`, result);
       return result;
     } else {
-      // If questionId is not provided, but word is not provided as well, throw an error
+      // If questionId is not provided, and a new document is to be created
       if (!word) {
         throw new Error("Word is required when not updating an existing document.");
       }
       
-      // Create a new document as before
+      // Create a new document with hasAnyUnansweredQuestions set to true
       const result = await faunaClient.query(
         q.Create(
           q.Collection('user_words'),
@@ -166,7 +167,8 @@ async function writeUserWord(userId, word, questions, questionId = null) {
                 level: question.level,
                 hasBeenAsked: false,
                 correctAnswer: question.correctAnswer
-              }))
+              })),
+              hasAnyUnansweredQuestions: true // Set true for new documents as they contain new questions
             }
           }
         )
@@ -182,18 +184,19 @@ async function writeUserWord(userId, word, questions, questionId = null) {
 
 async function fetchUnansweredQuestions(userId) {
   try {
-    // Fetch unanswered questions for the user using the new index
+    // Fetch documents for the user that have unanswered questions
     const result = await faunaClient.query(
       q.Map(
-        q.Paginate(q.Match(q.Index("unanswered_questions_by_userId"), userId)),
-        q.Lambda(["ref", "questions"], q.Get(q.Var("ref"))) // Adjusted to retrieve document based on ref
+        q.Paginate(q.Match(q.Index("user_words_with_unanswered_by_userId"), userId)),
+        q.Lambda("ref", q.Get(q.Var("ref")))
       )
     );
 
-    // Since questions are already filtered by the index, you can directly use them
     let unansweredQuestions = [];
     result.data.forEach(wordDoc => {
-      const questions = wordDoc.data.unansweredQuestions; // Assuming binding is correctly implemented
+      // Since these documents are confirmed to have unanswered questions,
+      // you directly filter the questions array.
+      const questions = wordDoc.data.questions.filter(question => !question.hasBeenAsked);
       unansweredQuestions = unansweredQuestions.concat(questions.map(question => ({
         word: wordDoc.data.word, // Include the word for context
         ...question
@@ -207,6 +210,9 @@ async function fetchUnansweredQuestions(userId) {
     throw error;
   }
 }
+
+
+
 
 
 // In your database or fauna.js file
@@ -270,19 +276,25 @@ async function markQuestionAsAskedAndUpdateUserAnswer(questionId, userAnswer) {
 
     // Find the question and its index within the questions array
     const questionIndex = userWordDoc.data.questions.findIndex(question => question.id === questionId);
-    const questionToUpdate = userWordDoc.data.questions[questionIndex];
-
-    // Step 3: Update the hasBeenAsked to true and add the user's answer
-    questionToUpdate.hasBeenAsked = true;
-    questionToUpdate.userAnswer = userAnswer; // Adding user's answer
+    
+    // Step 3: Prepare the updated question with `hasBeenAsked` set to true and the user's answer
+    const updatedQuestion = {
+      ...userWordDoc.data.questions[questionIndex],
+      hasBeenAsked: true,
+      userAnswer: userAnswer // Adding user's answer
+    };
 
     // Update the document's question array with the modified question
     const updatedQuestions = [...userWordDoc.data.questions];
-    updatedQuestions[questionIndex] = questionToUpdate;
+    updatedQuestions[questionIndex] = updatedQuestion;
 
+    // Determine if any questions remain unanswered
+    const hasAnyUnansweredQuestions = updatedQuestions.some(question => !question.hasBeenAsked);
+
+    // Step 4: Update the document with the modified questions and the hasAnyUnansweredQuestions status
     await faunaClient.query(
       q.Update(userWordRef, {
-        data: { questions: updatedQuestions }
+        data: { questions: updatedQuestions, hasAnyUnansweredQuestions: hasAnyUnansweredQuestions }
       })
     );
 
@@ -292,6 +304,7 @@ async function markQuestionAsAskedAndUpdateUserAnswer(questionId, userAnswer) {
     throw error;
   }
 }
+
 
 
 

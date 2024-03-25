@@ -23,8 +23,9 @@ module.exports = async (ctx) => {
         let question = await generateAdjustedQuestion(currentQuestion, isCorrect);
 
         //word can be null in this call
-        await writeUserWord(ctx.from.id, null,[question],currentQuestion.id); // Assume this adds an unanswered flag by default
-
+        if(question) {
+            await writeUserWord(ctx.from.id, null,[question],currentQuestion.id); // Assume this adds an unanswered flag by default
+        }
 
         // Proceed to the next question
         await get_next_question(ctx);
