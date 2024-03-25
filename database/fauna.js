@@ -180,28 +180,22 @@ async function writeUserWord(userId, word, questions, questionId = null) {
   }
 }
 
-
-
-
 async function fetchUnansweredQuestions(userId) {
   try {
-    // Fetch all words for the user
-    const userWords = await faunaClient.query(
+    // Fetch unanswered questions for the user using the new index
+    const result = await faunaClient.query(
       q.Map(
-        q.Paginate(q.Match(q.Index("userwords_by_userId"), userId)),
-        q.Lambda("X", q.Get(q.Var("X")))
+        q.Paginate(q.Match(q.Index("unanswered_questions_by_userId"), userId)),
+        q.Lambda(["ref", "questions"], q.Get(q.Var("ref"))) // Adjusted to retrieve document based on ref
       )
     );
 
-    // Initialize an array to hold all unanswered questions
+    // Since questions are already filtered by the index, you can directly use them
     let unansweredQuestions = [];
-
-    // Iterate over each word document to find unanswered questions
-    userWords.data.forEach(wordDoc => {
-      const questions = wordDoc.data.questions.filter(question => question.hasBeenAsked === false);
-      // Combine unanswered questions from this document with the overall results
+    result.data.forEach(wordDoc => {
+      const questions = wordDoc.data.unansweredQuestions; // Assuming binding is correctly implemented
       unansweredQuestions = unansweredQuestions.concat(questions.map(question => ({
-        word: wordDoc.data.word, // Include the word for context, if desired
+        word: wordDoc.data.word, // Include the word for context
         ...question
       })));
     });
@@ -213,6 +207,7 @@ async function fetchUnansweredQuestions(userId) {
     throw error;
   }
 }
+
 
 // In your database or fauna.js file
 
