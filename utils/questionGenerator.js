@@ -39,16 +39,17 @@ function createPromptForQuestion(word, level) {
   switch (level) {
     case "easy":
       prompt += ` For easy difficulty level, 
-      Preface the query_text with the definition of the word
+      Preface the query_text with the definition of the word and 
        ask a question on the correct usage of the word in a sentence.`;
       break;
     case "medium":
       prompt += ` For medium difficulty level, 
-      Ask an appropriate DOK level 2 question.`;
+      Ask an appropriate question that makes the use of antonyms, synonms or context clues`;
       break;
     case "hard":
-      prompt += ` For hard difficulty level, 
-      Ask an appropriate DOK level 3 question.`;
+      prompt += ` For hard difficulty level,  
+      Ask a question that verifies that the student has actually learned the word. 
+      Use good distractors`;
       break;
     default:
       // Optionally handle unknown difficulty levels

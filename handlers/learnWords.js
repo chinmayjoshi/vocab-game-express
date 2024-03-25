@@ -2,7 +2,7 @@
 const { storeMessage } = require("../database/fauna");
 const { ChatOpenAI } = require("@langchain/openai");
 const { updateUserSession } = require("../database/fauna");
-const { getCandidateWordsFromUserSession } = require("../database/fauna");
+const { getCandidateWordsFromUserSession, getWordsByUserId } = require("../database/fauna");
 
 
 
@@ -13,7 +13,8 @@ module.exports = async (ctx) => {
   try {
     // Store incoming message from the user
     console.log("Incoming message: ", ctx.update.callback_query.message.text);
-    await storeMessage(ctx.from.id, ctx.update.callback_query.message.text);
+    //await storeMessage(ctx.from.id, ctx.update.callback_query.message.text);
+
 
     // Send waiting message with animated loader
     const loader = "⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏";
@@ -23,6 +24,15 @@ module.exports = async (ctx) => {
       loaderIndex = (loaderIndex + 1) % loader.length;
       ctx.telegram.editMessageText(loadingMessage.chat.id, loadingMessage.message_id, undefined, `Please wait while I find ${numberOfWords} words for you... ${loader[loaderIndex]}`);
     }, 100);
+    let answeredWords = await getWordsByUserId(ctx.from.id);
+
+    let prompt_prefix = "";
+
+    if(answeredWords.length > 0){
+
+      prompt_prefix = `User has  already learned  the words: ${answeredWords.join(", ")}. So give them different words.`;
+    }
+
 
     // Determine the difficulty level
     let difficultyPrompt;
@@ -49,7 +59,9 @@ module.exports = async (ctx) => {
     let response;
     if (difficultyPrompt === "easy" || difficultyPrompt === "hard") {
       const candidateWords = await getCandidateWordsFromUserSession(ctx.from.id);
-      response = await chatModel.invoke(`
+      response = await chatModel.invoke(` 
+      ${prompt_prefix}
+      Generate words appropriate for grade 10 TEKS standards.
       Give me ${numberOfWords} words in English to practice vocabulary. You had previously given me the words: ${candidateWords.join(", ")}.
       I want more ${difficultyPrompt} words than those.
       . Don't reply with anything else, not even the meaning of the word. 
@@ -57,6 +69,7 @@ module.exports = async (ctx) => {
       `);
     } else {
       response = await chatModel.invoke(`
+      ${prompt_prefix}
       Give me ${numberOfWords} words in English to practice vocabulary.
       Don't reply with anything else, not even the meaning of the word. 
       Return a JSON response with an array of words and the key 'words'.

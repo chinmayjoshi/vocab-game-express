@@ -305,6 +305,33 @@ async function markQuestionAsAskedAndUpdateUserAnswer(questionId, userAnswer) {
   }
 }
 
+async function getWordsByUserId(userId) {
+  try {
+    // query the index userwords_by_userId to get all the words for a user
+    const result = await faunaClient.query(
+      q.Map(
+        q.Paginate(q.Match(q.Index("userwords_by_userId"), userId)),
+        q.Lambda("ref", q.Get(q.Var("ref")))
+      )
+    );
+
+    let words = [];
+    result.data.forEach(wordDoc => {
+      words.push(wordDoc.data.word);
+    });
+
+    // Keep only unique words
+    words = [...new Set(words)];
+
+    console.log(`Fetched words for user ID ${userId}:`, words);
+    return words;
+
+
+  } catch (error) {
+    console.log("Error retrieving words from user session in FaunaDB: ", error);
+    throw error;
+  }
+}
 
 
 
@@ -312,4 +339,4 @@ async function markQuestionAsAskedAndUpdateUserAnswer(questionId, userAnswer) {
 
 
 
-module.exports = { storeUser, storeMessage, updateUserSession, getCandidateWordsFromUserSession, writeUserWord, fetchUnansweredQuestions , updateCurrentQuestionInSession, getCurrentQuestion,markQuestionAsAskedAndUpdateUserAnswer};
+module.exports = {getWordsByUserId,  storeUser, storeMessage, updateUserSession, getCandidateWordsFromUserSession, writeUserWord, fetchUnansweredQuestions , updateCurrentQuestionInSession, getCurrentQuestion,markQuestionAsAskedAndUpdateUserAnswer};
