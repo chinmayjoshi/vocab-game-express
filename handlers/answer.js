@@ -35,9 +35,8 @@ module.exports = async (ctx) => {
 };
 
 
-// Function to determine the next question difficulty and generate the question
 async function generateAdjustedQuestion(currentQuestion, isCorrect) {
-    console.log("Generating adjusted question based on current question and answer...")
+    console.log("Generating adjusted question based on current question and answer...");
     let nextLevel = currentQuestion.level; // Default to current level
 
     // Define the order of difficulty levels
@@ -50,19 +49,28 @@ async function generateAdjustedQuestion(currentQuestion, isCorrect) {
         // If the answer is correct, move up a level, unless already at hardest
         if (levelIndex < levels.length - 1) {
             nextLevel = levels[levelIndex + 1];
+        } else {
+            // If the level is already "hard" and the answer is correct, don't add another question
+            console.log("Reached the hardest level. No new question generated.");
+            return null; // Or handle as per your game logic
         }
     } else {
         // If the answer is wrong, move down a level, unless already at easiest
         if (levelIndex > 0) {
             nextLevel = levels[levelIndex - 1];
+        } else {
+            // If the level is already "easy" and the answer is incorrect, don't add another question
+            console.log("At the easiest level and the answer was incorrect. No new question generated.");
+            return null; // Or handle as per your game logic
         }
     }
 
-    // Call generateQuestionForWord with adjusted parameters
-    let question = await generateQuestionForWord(currentQuestion.word, nextLevel).catch(error => {
-        console.error("Error generating adjusted question:", error);
-    });
-
-    return question;
+    // Assuming we are not at an extreme level or the adjustment condition was not triggered
+    if (nextLevel) {
+        let question = await generateQuestionForWord(currentQuestion.word, nextLevel).catch(error => {
+            console.error("Error generating adjusted question:", error);
+        });
+        return question;
+    }
 }
 
