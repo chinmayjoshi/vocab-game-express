@@ -11,10 +11,14 @@ module.exports = async (ctx) => {
 
         // Reply to the user based on whether their answer is correct
         if (isCorrect) {
-            await ctx.reply('Correct answer! 🎉');
-        } else {
-            await ctx.reply('Oops! That was not correct. 😢 Try another one!');
+              await ctx.reply('Correct answer! 🎉');
+        } 
+        else {
+              const correctAnswerText = currentQuestion.options[correctAnswerIndex]; // Assuming options is an array of answer choices
+              await ctx.reply(`Oops! That was not correct. 😢 The correct answer was: "${correctAnswerText}". Try another one!`);
         }
+
+
 
         // Record the user's answer
         await markQuestionAsAskedAndUpdateUserAnswer(currentQuestion.id, selectedOptionIndex);
