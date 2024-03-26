@@ -8,6 +8,7 @@ module.exports = async (ctx) => {
         const selectedOptionIndex = parseInt(ctx.callbackQuery.data.split('_')[1], 10);
         const correctAnswerIndex = currentQuestion.correctAnswer;
         const isCorrect = selectedOptionIndex === correctAnswerIndex;
+        const answerExplanation = currentQuestion.answerExplanation;
 
         // Reply to the user based on whether their answer is correct
         if (isCorrect) {
@@ -15,7 +16,7 @@ module.exports = async (ctx) => {
         } 
         else {
               const correctAnswerText = currentQuestion.options[correctAnswerIndex]; // Assuming options is an array of answer choices
-              await ctx.reply(`Oops! That was not correct. 😢 The correct answer was: "${correctAnswerText}". Try another one!`);
+              await ctx.reply(`Oops! That was not correct. 😢 ${answerExplanation}`);
         }
 
 
