@@ -38,16 +38,22 @@ function createPromptForQuestion(word, level) {
     case "easy":
       prompt += ` For easy difficulty level, 
       Preface the query_text with the definition of the word and 
-       ask a question on the correct usage of the word in a sentence.`;
+       ask a question on the correct usage of the word in a sentence.
+       The goal here is to ensure the player can recognize and apply the basic meaning of the word in a simple context. 
+       This approach helps build foundational vocabulary skills and confidence in word usage.`;
       break;
     case "medium":
       prompt += ` For medium difficulty level, 
-      Ask an appropriate question that makes the use of antonyms, synonms or context clues`;
+      Ask a question that requires the player to understand the word in a more complex context.
+      This could involve asking the player to identify synonyms, antonyms, or to use context clues to infer the meaning of the word in a given sentence. 
+      The challenge should be moderate, requiring a good understanding of not just the word itself, but also its relation to other words and its application in varied contexts. 
+    This level aims to enhance the player's vocabulary comprehension and their ability to draw connections between words."`;
       break;
     case "hard":
-      prompt += ` For hard difficulty level,  
-      Ask a question that verifies that the student has actually learned the word. 
-      Use good distractors`;
+      prompt += ` For the 'hard' difficulty level, craft a question that truly tests whether the player has mastered the word. 
+      This might involve creating a complex sentence where the word is used in an uncommon but correct way, or asking the player to distinguish between subtle nuances of the word's meaning compared to similar words. 
+      Incorporate challenging distractors that require the player to carefully consider their choice. 
+      The goal is to assess and reinforce a deep and nuanced understanding of the word, its connotations, and its applications in advanced contexts.`;
       break;
     default:
       // Optionally handle unknown difficulty levels
