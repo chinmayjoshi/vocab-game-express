@@ -117,24 +117,23 @@ async function writeUserWord(userId, word, questions, questionId = null) {
         throw new Error("Invalid questions format. Each question must be an object with a 'query_text' property.");
       }
     
-      // Prepare the data for updating, setting hasAnyUnansweredQuestions to true
+      // Prepare the data for updating, including the new field
       const updateData = {
         questions: q.Append(
           questions.map(question => ({
-            id: q.NewId(), // Generate a unique identifier for each new question
+            id: q.NewId(),
             query_text: question.query_text,
             options: question.options,
             level: question.level,
-            hasBeenAsked: false, // Default to false
-            correctAnswer: question.correctAnswer
+            hasBeenAsked: false,
+            correctAnswer: question.correctAnswer,
+            answerExplanation: question.answerExplanation // Updated to include answerExplanation
           })),
-          // Append new questions to the existing ones
           q.Select(["data", "questions"], q.Get(userWordRef))
         ),
-        hasAnyUnansweredQuestions: true // Assuming at least one new question means there's an unanswered question
+        hasAnyUnansweredQuestions: true
       };
     
-      // Optionally include the 'word' if it's provided and not empty
       if (word) {
         updateData.word = word;
       }
@@ -147,12 +146,10 @@ async function writeUserWord(userId, word, questions, questionId = null) {
       console.log(`Successfully updated document for user ID ${userId} with additional questions.`, result);
       return result;
     } else {
-      // If questionId is not provided, and a new document is to be created
       if (!word) {
         throw new Error("Word is required when not updating an existing document.");
       }
       
-      // Create a new document with hasAnyUnansweredQuestions set to true
       const result = await faunaClient.query(
         q.Create(
           q.Collection('user_words'),
@@ -166,9 +163,10 @@ async function writeUserWord(userId, word, questions, questionId = null) {
                 options: question.options,
                 level: question.level,
                 hasBeenAsked: false,
-                correctAnswer: question.correctAnswer
+                correctAnswer: question.correctAnswer,
+                answerExplanation: question.answerExplanation // Updated to include answerExplanation
               })),
-              hasAnyUnansweredQuestions: true // Set true for new documents as they contain new questions
+              hasAnyUnansweredQuestions: true
             }
           }
         )
@@ -181,6 +179,7 @@ async function writeUserWord(userId, word, questions, questionId = null) {
     throw error;
   }
 }
+
 
 async function fetchUnansweredQuestions(userId) {
   try {

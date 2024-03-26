@@ -12,25 +12,23 @@ async function generateQuestionForWord(word, level) {
   });
 
   try {
-    // Create prompt based on difficulty level
     const prompt = createPromptForQuestion(word, level);
-
-    // Invoke the model with the generated prompt
     const response = await chatModel.invoke(prompt);
-
-    // Assuming the model's response is well-structured JSON matching the expected format
     let questionData = JSON.parse(response.content);
+    
     return {
       query_text: questionData.query_text,
       options: questionData.options,
       level: level,
       correctAnswer: questionData.correctAnswer,
+      answerExplanation: questionData.answerExplanation, // Include the answerExplanation
     };
   } catch (error) {
     console.error("Error generating question for word:", error);
     throw error;
   }
 }
+
 
 // Function to create the prompt based on the word and difficulty level
 function createPromptForQuestion(word, level) {
@@ -58,7 +56,8 @@ function createPromptForQuestion(word, level) {
 
   prompt += ` The question should include: - A query text - Multiple choice options (at least 4) - 
   Indicate the index of the correct answer (starting from 0) 
-  Return a JSON response with the structure {query_text, options, correctAnswer}.`;
+  Also add an answer explanation explaining why the correct answer is correct and why the other options are incorrect.
+  Return a JSON response with the structure {query_text, options, correctAnswer, answerExplanation}.`;
 
   return prompt;
 }
