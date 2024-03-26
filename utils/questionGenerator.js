@@ -62,7 +62,6 @@ function createPromptForQuestion(word, level) {
 
   prompt += ` The question should include: - A query text - Multiple choice options (at least 4) - 
   Indicate the index of the correct answer (starting from 0) 
-  Do not add the index (A,B,C,..) to the options, just the text.
   Also add an answer explanation explaining why the correct answer is correct and why the other options are incorrect.
   Return a JSON response with the structure {query_text, options, correctAnswer, answerExplanation}.`;
 
